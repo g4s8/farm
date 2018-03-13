@@ -16,12 +16,20 @@
  */
 package com.zerocracy.stk.pmo.people
 
+import com.jcabi.github.Github
+import com.jcabi.github.User
 import com.jcabi.xml.XML
+import com.zerocracy.Farm
 import com.zerocracy.Project
+import com.zerocracy.entry.ExtGithub
 import com.zerocracy.farm.Assume
+import com.zerocracy.pmo.People
+
+import java.security.SecureRandom
 
 def exec(Project pmo, XML xml) {
   new Assume(pmo, xml).isPmo()
+  new Assume(pmo, xml).type('Ping hourly')
   /**
    * @todo #492:30min Let's implement this stakeholder. It will take
    *  a random user from the list, which has the oldest updated attribute,
@@ -29,4 +37,12 @@ def exec(Project pmo, XML xml) {
    *  to and fetch the most popular languages from them.
    *  GitHub provides that information.
    */
+  Farm farm = binding.variables.farm
+  People people = new People(farm).bootstrap()
+  List<String> ids = people.iterate().toList()
+  Random random = new SecureRandom()
+  String login = ids[random.nextInt(ids.size())]
+  Github github = new ExtGithub(farm).value()
+  new User.Smart(github.users().get(login)).publicRepos()
+  // WAITING https://github.com/jcabi/jcabi-github/issues/1361
 }
